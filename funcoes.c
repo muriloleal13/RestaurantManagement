@@ -20,6 +20,7 @@ bool temLugar(Mesas** matrizMesas, int row, int col, int nroPessoas){
 			}
 		}
 	}
+
 	return lugares > nroPessoas;
 }
 
@@ -84,13 +85,16 @@ void liberaFilaEspera(FilaEspera* filaEspera){
 //MESAS
 void inicializaMesas(Mesas** matrizMesas, int row, int col){
 
-	printf("%d-%d\n", row, col);
+	int cont = 1;
 
-	matrizMesas = (Mesas **)malloc(row *(sizeof(struct mesa*)));
-    for (int i = 0; i < row; i++){
-	printf("%d\n", i);
-      	matrizMesas[i] = (Mesas *)malloc(col *(sizeof(struct mesa)));
-    }
+	for(int i = 0; i < row; i++){
+		for(int j = 0; j < col; j++){
+			matrizMesas[i][j].nro = cont++;
+		  	matrizMesas[i][j].lugares = MAX_MESA;
+		  	matrizMesas[i][j].sentados = 0;
+		  	matrizMesas[i][j].livre = true;
+		}
+	}
 }
 
 void imprimeMesas(Mesas** matrizMesas, int row, int col){
@@ -106,7 +110,7 @@ void imprimeMesas(Mesas** matrizMesas, int row, int col){
 				else
 					strcpy(status, "Ocupado");
 
-				printf("#%d\nMesa %d\nStatus: %s\n---\n", cont, matrizMesas[i][j].nro, status);
+				printf("#%d\nMesa %d\nStatus: %s\nSentados: %d\n---\n", cont, matrizMesas[i][j].nro, status, matrizMesas[i][j].sentados);
 				cont++;
 			}
 		}
@@ -116,7 +120,7 @@ void imprimeMesas(Mesas** matrizMesas, int row, int col){
 }
 
 void entradaClientes(Mesas** matrizMesas, int row, int col, int nroPessoas, FilaEspera* filaEspera){
-printf("%d\n", nroPessoas);
+
 	if(row != 0 && col != 0 && temLugar(matrizMesas, row, col, nroPessoas)){
 		for(int i = 0; i < row; i++){
 			for(int j = 0; j < col; j++){
@@ -187,7 +191,7 @@ int opMenuTipo(char str[], char str2[]){
 void menuMesas(Mesas** matrizMesas, FilaEspera* filaEspera){
 
 	int opCliente = opMenuTipo("Mesas", "Clientes");
-	int row, col, nro;
+	int row = 0, col = 0, nro;
 
 	while(opCliente != 5){
 		switch(opCliente){
@@ -199,6 +203,9 @@ void menuMesas(Mesas** matrizMesas, FilaEspera* filaEspera){
 				printf("Digite o numero de colunas de mesas: ");
 				scanf("%d", &col);
 				fflush(stdin);
+				matrizMesas = (Mesas **) malloc(row * sizeof(struct mesa*));
+			    for (int i = 0; i < row; i++)
+			      	matrizMesas[i] = (Mesas *) malloc(col * sizeof(struct mesa));
 				inicializaMesas(matrizMesas, row, col);
 				break;
 			case 2:
@@ -230,7 +237,7 @@ void menuMesas(Mesas** matrizMesas, FilaEspera* filaEspera){
 void menu(){
 
 	Mesas **matrizMesas = NULL;
-	FilaEspera* filaEspera = criaFilaEspera();
+	FilaEspera* filaEspera = NULL;
 
 	int op = opMenu();
 
