@@ -39,13 +39,15 @@ void insereFilaEspera(FilaEspera* filaEspera, int nroPessoas){
 
 	Lista* lista = (Lista*) malloc(sizeof(Lista));
 	lista->nroPessoas = nroPessoas;
-	lista->senha = 0;
+	lista->senha = 1;
 	lista->prox = NULL;
 
-	if (filaEspera->fim != NULL)
+	if (filaEspera->fim != NULL){
+		lista->senha = filaEspera->fim->senha + 1;
 		filaEspera->fim->prox = lista;
-	else
+	}else{
 		filaEspera->ini = lista;
+	}
 
 	filaEspera->fim = lista;
 }
@@ -61,9 +63,15 @@ int retiraListaEspera(FilaEspera* filaEspera){
 	}
 	lista = filaEspera->ini;
 	nroPessoas = lista->nroPessoas;
-	filaEspera->ini = lista->prox;
-	if (filaEspera->ini == NULL)
-		filaEspera->fim = NULL;
+	if(nroPessoas <= MAX_MESA){
+		printf("Todas as pessoas da senha %d serao inseridas na mesa\nProxima senha %d", lista->senha, lista->prox->senha);
+		filaEspera->ini = lista->prox;
+		if (filaEspera->ini == NULL){
+			filaEspera->fim = NULL;
+		}
+	}else{
+		printf("Apenas %d pessoas da senha %d serao inseridas na mesa\n", MAX_MESA, lista->senha);
+	}
 
 	free(lista);
 	
@@ -80,6 +88,24 @@ void liberaFilaEspera(FilaEspera* filaEspera){
 	}
 
 	free(filaEspera);
+}
+
+void imprimeFilaEspera(FilaEspera* filaEspera){
+
+	Lista* lista;
+	int cont = 1;
+
+	if (filaEspera->ini == NULL) { 
+		printf("A Fila de Espera esta vazia.\n");
+		return;
+	}
+	lista = filaEspera->ini;
+	while(lista != NULL){
+		printf("#%d\n%d pessoas\n---\n", cont++,lista->nroPessoas);
+		lista = lista->prox;
+	}
+
+	free(lista);
 }
 
 //MESAS
@@ -121,7 +147,7 @@ void imprimeMesas(Mesas** matrizMesas, int row, int col){
 
 void entradaClientes(Mesas** matrizMesas, int row, int col, int nroPessoas, FilaEspera* filaEspera){
 
-	if(row != 0 && col != 0 && temLugar(matrizMesas, row, col, nroPessoas)){
+	if(row != 0 && col != 0){
 		for(int i = 0; i < row; i++){
 			for(int j = 0; j < col; j++){
 				if(matrizMesas[i][j].livre && nroPessoas > 0){
@@ -136,11 +162,12 @@ void entradaClientes(Mesas** matrizMesas, int row, int col, int nroPessoas, Fila
 				}
 			}
 		}
-	}else if(!temLugar(matrizMesas, row, col, nroPessoas)){
-		printf("Nao existe mesas suficientes, inserindo na fila de espera.\n");
-		insereFilaEspera(filaEspera, nroPessoas);
 	}else{
 		printf("Sem mesas cadastradas, portanto nao eh possivel cadastrar a entrada clientes.\n");
+	}
+	if(nroPessoas > 0){
+		printf("Nao existe mesas suficientes, inserindo pessoas restantes na fila de espera.\n");
+		insereFilaEspera(filaEspera, nroPessoas);
 	}
 }
 
@@ -153,7 +180,8 @@ void saidaClientes(Mesas** matrizMesas, int row, int col, int nroMesa, FilaEsper
 					matrizMesas[i][j].sentados = 0;
 					matrizMesas[i][j].livre = true;
 					if(filaEspera->ini != NULL){
-
+						int nroPessoas = retiraListaEspera(filaEspera);
+						entradaClientes(matrizMesas, row, col, nroPessoas,filaEspera);
 					}
 				}
 			}
@@ -181,7 +209,7 @@ int opMenuTipo(char str[], char str2[]){
 	int opCliente;
 
 	printf("=== Menu %s === \n", str);
-	printf("1 - Cadastrar %s\n2 - Imprime %s\n3 - Entrada %s\n4 - Saida %s\n5 - Voltar ao Menu\nOp: ", str, str, str2, str2);
+	printf("1 - Cadastrar %s\n2 - Imprime %s\n3 - Entrada %s\n4 - Saida %s\n5 - Imprime Fila de Espera\n6 - Voltar ao Menu\nOp: ", str, str, str2, str2);
 	scanf("%d", &opCliente);
 	fflush(stdin);
 
@@ -193,7 +221,7 @@ void menuMesas(Mesas** matrizMesas, FilaEspera* filaEspera){
 	int opCliente = opMenuTipo("Mesas", "Clientes");
 	int row = 0, col = 0, nro;
 
-	while(opCliente != 5){
+	while(opCliente != 6){
 		switch(opCliente){
 			case 1:
 				printf("=== CADASTRA MESAS ===\n");
@@ -224,6 +252,9 @@ void menuMesas(Mesas** matrizMesas, FilaEspera* filaEspera){
 				saidaClientes(matrizMesas, row, col, nro, filaEspera);
 				break;
 			case 5:
+				imprimeFilaEspera(filaEspera);
+				break;
+			case 6:
 				printf("Voltando ao menu.\n");
 				break;
 			default:
@@ -237,7 +268,7 @@ void menuMesas(Mesas** matrizMesas, FilaEspera* filaEspera){
 void menu(){
 
 	Mesas **matrizMesas = NULL;
-	FilaEspera* filaEspera = NULL;
+	FilaEspera* filaEspera = criaFilaEspera();
 
 	int op = opMenu();
 

@@ -21,6 +21,7 @@ FilaEspera* criaFilaEspera();
 void insereFilaEspera(FilaEspera* filaEspera, int nroPessoas);
 int retiraListaEspera(FilaEspera* filaEspera);
 void liberaFilaEspera(FilaEspera* filaEspera);
+void imprimeFilaEspera(FilaEspera* filaEspera);
 
 //FUNÇÕES AUXILIARES
 bool temLugar(Mesas** matrizMesas, int row, int col, int nroPessoas);
