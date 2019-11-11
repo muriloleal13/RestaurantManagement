@@ -18,7 +18,7 @@ typedef struct fila{
 
 typedef struct carros{
 	char placa[10];
-	int ticket;
+	// int ticket;
 	struct carros* ant;
 	struct carros* prox;
 } Carros;
@@ -39,7 +39,7 @@ typedef struct pilha_carros{
 
 //FUNÇÕES AUXILIARES
 bool temLugar(Mesas** matrizMesas, int row, int col, int nroPessoas);
-bool temVaga(FilaCarros** filaCarros, int nroCarros);
+bool temVaga(FilaCarros* filaCarros, int nroCarros);
 
 //FILA
 Fila* criaFila();
@@ -61,13 +61,13 @@ void entradaClientes(Mesas** matrizMesas, int row, int col, int nroPessoas, Fila
 void saidaClientes(Mesas** matrizMesas, int row, int col, int nroMesa, Fila* filaEspera);
 
 //ESTACIONAMENTO
-void insereEstacionamento(FilaCarros** filaCarros, char placa[]);
-void removeEstacionamento(FilaCarros** filaCarros, char placa[]);
-void imprimeEstacionamento(FilaCarros** filaCarros);
+FilaCarros* insereEstacionamento(FilaCarros* filaCarros, char placa[]);
+FilaCarros* removeEstacionamento(FilaCarros* filaCarros, char placa[]);
+void imprimeEstacionamento(FilaCarros* filaCarros);
 
 //Menu
 int opMenu();
 int opMenuTipo(char str[], char str2[]);
 void menuMesas(Mesas** matrizMesasm, Fila* filaEspera);
-int menuEstacionamento(FilaCarros** filaCarros, int nroCarros);
+int menuEstacionamento(FilaCarros* filaCarros, int nroCarros);
 void menu();
