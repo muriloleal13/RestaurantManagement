@@ -24,6 +24,27 @@ bool temLugar(Mesas** matrizMesas, int row, int col, int nroPessoas){
 	return lugares > nroPessoas;
 }
 
+bool temVaga(FilaCarros* filaCarros, int nroCarros){
+
+	Carros *carro;
+	int cont = 0;
+
+	if(filaCarros->ini == NULL){
+		return true;
+	}
+
+	carro = filaCarros->ini;
+
+	while(carro != NULL){
+		cont++;
+		carro = carro->prox;
+	}
+
+	free(carro);
+
+	return cont < nroCarros;
+}
+
 //FILA
 Fila* criaFila(){
 
@@ -240,6 +261,8 @@ void insereEstacionamento(FilaCarros* filaCarros, char placa[]){
 		carro->ant = filaCarros->fim;
 		filaCarros->fim = carro;
 	}
+
+	free(carro);
 }
 
 void removeEstacionamento(FilaCarros* filaCarros, char placa[]){
@@ -272,6 +295,9 @@ void removeEstacionamento(FilaCarros* filaCarros, char placa[]){
 			insereEstacionamento(filaCarros, placaRet);
 		}
 	}
+
+	free(pilhaCarros);
+	free(carro);
 }
 
 void imprimeEstacionamento(FilaCarros* filaCarros){
@@ -286,10 +312,12 @@ void imprimeEstacionamento(FilaCarros* filaCarros){
 
 	carro = filaCarros->ini;
 
-	while(carro->prox != NULL){
-		printf("%d\nPlaca %s\n---\n", cont++, carro->placa);
+	while(carro != NULL){
+		printf("#%d\nPlaca %s\n---\n", cont++,carro->placa);
 		carro = carro->prox;
 	}
+
+	free(carro);
 }
 
 //MENU
@@ -378,19 +406,24 @@ int menuEstacionamento(FilaCarros* filaCarros, int nroCarros){
 	while(opEstacionamento != 5){
 		switch(opEstacionamento){
 			case 1:
-				printf("Digite o numero de carros possiveis no estacionamento\n");
+				printf("Digite o numero de carros possiveis no estacionamento: ");
 				scanf("%d", &nroCarros);
 				break;
 			case 2:
 				imprimeEstacionamento(filaCarros);
 				break;
 			case 3:
-				printf("Digite a placa do carro\n");
-				scanf("%[^\n]", placa);
-				insereEstacionamento(filaCarros, placa);
+				if(temVaga(filaCarros, nroCarros)){
+					printf("Digite a placa do carro: ");
+					scanf("%[^\n]", placa);
+					printf("placa -> %s\n", placa);
+					insereEstacionamento(filaCarros, placa);
+				}else{
+					printf("Sem vaga no estacionamento.\n");
+				}
 				break;
 			case 4:
-				printf("Digite a placa do carro\n");
+				printf("Digite a placa do carro: ");
 				scanf("%[^\n]", placa);
 				removeEstacionamento(filaCarros, placa);
 				break;

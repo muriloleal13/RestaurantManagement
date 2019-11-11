@@ -36,6 +36,10 @@ typedef struct pilha_carros{
 	ListaCarros* prim;
 } PilhaCarros;
 
+//FUNÇÕES AUXILIARES
+bool temLugar(Mesas** matrizMesas, int row, int col, int nroPessoas);
+bool temVaga(FilaCarros* filaCarros, int nroCarros);
+
 //FILA
 Fila* criaFila();
 FilaCarros* criaFilaCarros();
@@ -48,9 +52,6 @@ void imprimeFilaEspera(Fila* filaEspera);
 PilhaCarros* criaPilha();
 void pushPilha(PilhaCarros* PilhaCarros, char placa[]);
 void popPilha(PilhaCarros* pilhaCarros, char *placa);
-
-//FUNÇÕES AUXILIARES
-bool temLugar(Mesas** matrizMesas, int row, int col, int nroPessoas);
 
 //MESAS
 void inicializaMesas(Mesas** matrizMesas, int row, int col);
