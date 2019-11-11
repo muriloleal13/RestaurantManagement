@@ -24,18 +24,22 @@ bool temLugar(Mesas** matrizMesas, int row, int col, int nroPessoas){
 	return lugares > nroPessoas;
 }
 
-//FILA ESPERA
-FilaEspera* criaFilaEspera(){
+//FILA
+Fila* criaFila(){
 
-	FilaEspera* filaEspera = (FilaEspera*)malloc(sizeof(FilaEspera));
-	filaEspera->ini = NULL;
-	filaEspera->fim = NULL;
-	return filaEspera;
+	Fila* fila = (Fila*)malloc(sizeof(Fila));
+	fila->ini = fila->fim = NULL;
+	return fila;
 }
 
-void insereFilaEspera(FilaEspera* filaEspera, int nroPessoas){
+FilaCarros* criaFilaCarros(){
 
-	// int senha = buscaSenha(filaEspera);
+	FilaCarros* fila = (FilaCarros*)malloc(sizeof(FilaCarros));
+	fila->ini = fila->fim = NULL;
+	return fila;
+}
+
+void insereFilaEspera(Fila* filaEspera, int nroPessoas){
 
 	Lista* lista = (Lista*) malloc(sizeof(Lista));
 	lista->nroPessoas = nroPessoas;
@@ -52,7 +56,7 @@ void insereFilaEspera(FilaEspera* filaEspera, int nroPessoas){
 	filaEspera->fim = lista;
 }
 
-int retiraListaEspera(FilaEspera* filaEspera){
+int retiraListaEspera(Fila* filaEspera){
 
 	Lista* lista;
 	int nroPessoas = 0;
@@ -64,12 +68,14 @@ int retiraListaEspera(FilaEspera* filaEspera){
 	lista = filaEspera->ini;
 	nroPessoas = lista->nroPessoas;
 	if(nroPessoas <= MAX_MESA){
-		printf("Todas as pessoas da senha %d serao inseridas na mesa\nProxima senha %d", lista->senha, lista->prox->senha);
+		printf("Todas as pessoas da senha %d serao inseridas na mesa\nProxima senha %d\n", lista->senha, lista->prox->senha);
 		filaEspera->ini = lista->prox;
 		if (filaEspera->ini == NULL){
 			filaEspera->fim = NULL;
 		}
 	}else{
+		lista->nroPessoas -= MAX_MESA;
+		nroPessoas = MAX_MESA;
 		printf("Apenas %d pessoas da senha %d serao inseridas na mesa\n", MAX_MESA, lista->senha);
 	}
 
@@ -78,7 +84,7 @@ int retiraListaEspera(FilaEspera* filaEspera){
 	return nroPessoas;
 }
 
-void liberaFilaEspera(FilaEspera* filaEspera){
+void liberaFilaEspera(Fila* filaEspera){
 
 	Lista* lista = filaEspera->ini;
 	while (lista != NULL) {
@@ -90,7 +96,7 @@ void liberaFilaEspera(FilaEspera* filaEspera){
 	free(filaEspera);
 }
 
-void imprimeFilaEspera(FilaEspera* filaEspera){
+void imprimeFilaEspera(Fila* filaEspera){
 
 	Lista* lista;
 	int cont = 1;
@@ -106,6 +112,32 @@ void imprimeFilaEspera(FilaEspera* filaEspera){
 	}
 
 	free(lista);
+}
+
+//PILHA 
+PilhaCarros* criaPilha(){
+
+	PilhaCarros* p = (PilhaCarros*) malloc(sizeof(PilhaCarros));
+	p->prim = NULL;
+	return p;
+}
+
+void pushPilha(PilhaCarros* pilhaCarros, char placa[]){
+
+	ListaCarros* listaCarros = (ListaCarros*) malloc(sizeof(ListaCarros));
+	strcpy(listaCarros->placa, placa);
+	listaCarros->prox = pilhaCarros->prim;
+	pilhaCarros->prim = listaCarros;
+}
+
+void popPilha(PilhaCarros* pilhaCarros, char *placa){
+
+	ListaCarros* listaCarros;
+
+	listaCarros = pilhaCarros->prim;
+	strcpy(placa, listaCarros->placa);
+	pilhaCarros->prim = listaCarros->prox;
+	free(listaCarros);
 }
 
 //MESAS
@@ -145,7 +177,7 @@ void imprimeMesas(Mesas** matrizMesas, int row, int col){
 	}
 }
 
-void entradaClientes(Mesas** matrizMesas, int row, int col, int nroPessoas, FilaEspera* filaEspera){
+void entradaClientes(Mesas** matrizMesas, int row, int col, int nroPessoas, Fila* filaEspera){
 
 	if(row != 0 && col != 0){
 		for(int i = 0; i < row; i++){
@@ -171,7 +203,7 @@ void entradaClientes(Mesas** matrizMesas, int row, int col, int nroPessoas, Fila
 	}
 }
 
-void saidaClientes(Mesas** matrizMesas, int row, int col, int nroMesa, FilaEspera* filaEspera){
+void saidaClientes(Mesas** matrizMesas, int row, int col, int nroMesa, Fila* filaEspera){
 
 	if(row != 0 && col != 0){
 		for(int i = 0; i < row; i++){
@@ -188,6 +220,75 @@ void saidaClientes(Mesas** matrizMesas, int row, int col, int nroMesa, FilaEsper
 		}
 	}else{
 		printf("Sem mesas cadastradas, portanto nao eh possivel cadastrar a saida de clientes.\n");
+	}
+}
+
+void insereEstacionamento(FilaCarros* filaCarros, char placa[]){
+
+	Carros* carro;
+	carro = (Carros*) malloc(sizeof(Carros));
+
+	strcpy(carro->placa, placa);
+	carro->prox = NULL;
+	carro->ant = NULL;
+
+	if(filaCarros->ini == NULL){
+		filaCarros->ini = carro;
+		filaCarros->fim = carro;
+	}else{
+		filaCarros->fim->prox = carro;
+		carro->ant = filaCarros->fim;
+		filaCarros->fim = carro;
+	}
+}
+
+void removeEstacionamento(FilaCarros* filaCarros, char placa[]){
+
+	Carros *carro;
+	PilhaCarros *pilhaCarros = criaPilha();
+	char placaRet[10];
+
+	if(filaCarros->ini == NULL){
+		printf("Estacionamento vazio.\n");
+		return;
+	}
+
+	carro = filaCarros->fim;
+
+	if(filaCarros->ini == filaCarros->fim){
+		filaCarros->ini = filaCarros->fim = NULL;
+	}else{
+		while(!(strcmp(carro->placa, placa) == 0)){ //remove os carros que não é o com a placa igual e insere na lista
+			pushPilha(pilhaCarros, carro->placa);
+			filaCarros->fim = carro->ant;
+			filaCarros->fim->prox = NULL;
+		}
+
+		filaCarros->fim = carro->ant; //remove o carro que vai sair
+		filaCarros->fim->prox = NULL;
+
+		while(pilhaCarros->prim != NULL){ //remove o carro da pilha e insere novamente no estacionamento
+			popPilha(pilhaCarros, placaRet);
+			insereEstacionamento(filaCarros, placaRet);
+		}
+	}
+}
+
+void imprimeEstacionamento(FilaCarros* filaCarros){
+
+	Carros *carro;
+	int cont = 1;
+
+	if(filaCarros->ini == NULL){
+		printf("Estacionamento vazio.\n");
+		return;
+	}
+
+	carro = filaCarros->ini;
+
+	while(carro->prox != NULL){
+		printf("%d\nPlaca %s\n---\n", cont++, carro->placa);
+		carro = carro->prox;
 	}
 }
 
@@ -209,20 +310,23 @@ int opMenuTipo(char str[], char str2[]){
 	int opCliente;
 
 	printf("=== Menu %s === \n", str);
-	printf("1 - Cadastrar %s\n2 - Imprime %s\n3 - Entrada %s\n4 - Saida %s\n5 - Imprime Fila de Espera\n6 - Voltar ao Menu\nOp: ", str, str, str2, str2);
+	if(strcmp(str, "Mesas") == 0)
+		printf("1 - Cadastrar %s\n2 - Imprime %s\n3 - Entrada %s\n4 - Saida %s\n5 - Imprime Fila de Espera\n6 - Voltar ao Menu\nOp: ", str, str, str2, str2);
+	else
+		printf("1 - Cadastrar %s\n2 - Imprime %s\n3 - Entrada %s\n4 - Saida %s\n5 - Voltar ao Menu\nOp: ", str, str, str2, str2);
 	scanf("%d", &opCliente);
 	fflush(stdin);
 
 	return opCliente;
 }
 
-void menuMesas(Mesas** matrizMesas, FilaEspera* filaEspera){
+void menuMesas(Mesas** matrizMesas, Fila* filaEspera){
 
-	int opCliente = opMenuTipo("Mesas", "Clientes");
+	int opMesas = opMenuTipo("Mesas", "Clientes");
 	int row = 0, col = 0, nro;
 
-	while(opCliente != 6){
-		switch(opCliente){
+	while(opMesas != 6){
+		switch(opMesas){
 			case 1:
 				printf("=== CADASTRA MESAS ===\n");
 				printf("Digite o numero de linhas de mesas: ");
@@ -261,14 +365,53 @@ void menuMesas(Mesas** matrizMesas, FilaEspera* filaEspera){
 				printf("Operacao invalida.\n");
 				break;
 		}
-		opCliente = opMenuTipo("Mesas", "Clientes");
+		opMesas = opMenuTipo("Mesas", "Clientes");
 	}
+}
+
+int menuEstacionamento(FilaCarros* filaCarros, int nroCarros){
+
+	int opEstacionamento = opMenuTipo("Estacionamento", "Carros");
+	int row = 0, col = 0;
+	char placa[10];
+
+	while(opEstacionamento != 5){
+		switch(opEstacionamento){
+			case 1:
+				printf("Digite o numero de carros possiveis no estacionamento\n");
+				scanf("%d", &nroCarros);
+				break;
+			case 2:
+				imprimeEstacionamento(filaCarros);
+				break;
+			case 3:
+				printf("Digite a placa do carro\n");
+				scanf("%[^\n]", placa);
+				insereEstacionamento(filaCarros, placa);
+				break;
+			case 4:
+				printf("Digite a placa do carro\n");
+				scanf("%[^\n]", placa);
+				removeEstacionamento(filaCarros, placa);
+				break;
+			case 5:
+				printf("Voltando ao menu.\n");
+				break;
+			default:
+				printf("Operacao invalida.\n");
+				break;
+		}
+		opEstacionamento = opMenuTipo("Mesas", "Clientes");
+	}
+	return nroCarros;
 }
 
 void menu(){
 
 	Mesas **matrizMesas = NULL;
-	FilaEspera* filaEspera = criaFilaEspera();
+	Fila* filaEspera = criaFila();
+	FilaCarros* filaCarros = criaFilaCarros();
+	int nroCarros = 0;
 
 	int op = opMenu();
 
@@ -278,7 +421,7 @@ void menu(){
 				menuMesas(matrizMesas, filaEspera);
 				break;
 			case 2:
-				// opCliente = opMenuTipo("Mesas", "Clientes");
+				nroCarros = menuEstacionamento(filaCarros, nroCarros);
 				break;
 			case 3:
 				printf("Sessao finalizada.\n");
