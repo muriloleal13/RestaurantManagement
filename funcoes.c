@@ -24,16 +24,17 @@ bool temLugar(Mesas** matrizMesas, int row, int col, int nroPessoas){
 	return lugares > nroPessoas;
 }
 
-bool temVaga(FilaCarros* filaCarros, int nroCarros){
+bool temVaga(FilaCarros** filaCarros, int nroCarros){
 
 	Carros *carro;
+	FilaCarros* p = *filaCarros;
 	int cont = 0;
 
-	if(filaCarros->ini == NULL){
+	if(p->ini == NULL){
 		return true;
 	}
 
-	carro = filaCarros->ini;
+	carro = p->ini;
 
 	while(carro != NULL){
 		cont++;
@@ -41,7 +42,7 @@ bool temVaga(FilaCarros* filaCarros, int nroCarros){
 	}
 
 	free(carro);
-
+	printf("%d carros estacionados\n", cont);
 	return cont < nroCarros;
 }
 
@@ -244,55 +245,57 @@ void saidaClientes(Mesas** matrizMesas, int row, int col, int nroMesa, Fila* fil
 	}
 }
 
-void insereEstacionamento(FilaCarros* filaCarros, char placa[]){
+void insereEstacionamento(FilaCarros** filaCarros, char placa[]){
 
 	Carros* carro;
 	carro = (Carros*) malloc(sizeof(Carros));
+	FilaCarros* p = *filaCarros;
 
 	strcpy(carro->placa, placa);
 	carro->prox = NULL;
 	carro->ant = NULL;
 
-	if(filaCarros->ini == NULL){
-		filaCarros->ini = carro;
-		filaCarros->fim = carro;
+	if(p->ini == NULL){
+		p->ini = carro;
+		p->fim = carro;
 	}else{
-		filaCarros->fim->prox = carro;
-		carro->ant = filaCarros->fim;
-		filaCarros->fim = carro;
+		p->fim->prox = carro;
+		carro->ant = p->fim;
+		p->fim = carro;
 	}
 
 	free(carro);
 }
 
-void removeEstacionamento(FilaCarros* filaCarros, char placa[]){
+void removeEstacionamento(FilaCarros** filaCarros, char placa[]){
 
 	Carros *carro;
 	PilhaCarros *pilhaCarros = criaPilha();
+	FilaCarros* p = *filaCarros;
 	char placaRet[10];
 
-	if(filaCarros->ini == NULL){
+	if(p->ini == NULL){
 		printf("Estacionamento vazio.\n");
 		return;
 	}
 
-	carro = filaCarros->fim;
+	carro = p->fim;
 
-	if(filaCarros->ini == filaCarros->fim){
-		filaCarros->ini = filaCarros->fim = NULL;
+	if(p->ini == p->fim){
+		p->ini = p->fim = NULL;
 	}else{
 		while(!(strcmp(carro->placa, placa) == 0)){ //remove os carros que não é o com a placa igual e insere na lista
 			pushPilha(pilhaCarros, carro->placa);
-			filaCarros->fim = carro->ant;
-			filaCarros->fim->prox = NULL;
+			p->fim = carro->ant;
+			p->fim->prox = NULL;
 		}
 
-		filaCarros->fim = carro->ant; //remove o carro que vai sair
-		filaCarros->fim->prox = NULL;
+		p->fim = carro->ant; //remove o carro que vai sair
+		p->fim->prox = NULL;
 
 		while(pilhaCarros->prim != NULL){ //remove o carro da pilha e insere novamente no estacionamento
 			popPilha(pilhaCarros, placaRet);
-			insereEstacionamento(filaCarros, placaRet);
+			insereEstacionamento(&p, placaRet);
 		}
 	}
 
@@ -300,17 +303,18 @@ void removeEstacionamento(FilaCarros* filaCarros, char placa[]){
 	free(carro);
 }
 
-void imprimeEstacionamento(FilaCarros* filaCarros){
+void imprimeEstacionamento(FilaCarros** filaCarros){
 
 	Carros *carro;
+	FilaCarros* p = *filaCarros;
 	int cont = 1;
 
-	if(filaCarros->ini == NULL){
+	if(p->ini == NULL){
 		printf("Estacionamento vazio.\n");
 		return;
 	}
 
-	carro = filaCarros->ini;
+	carro = p->ini;
 
 	while(carro != NULL){
 		printf("#%d\nPlaca %s\n---\n", cont++,carro->placa);
@@ -397,7 +401,7 @@ void menuMesas(Mesas** matrizMesas, Fila* filaEspera){
 	}
 }
 
-int menuEstacionamento(FilaCarros* filaCarros, int nroCarros){
+int menuEstacionamento(FilaCarros** filaCarros, int nroCarros){
 
 	int opEstacionamento = opMenuTipo("Estacionamento", "Carros");
 	int row = 0, col = 0;
@@ -416,7 +420,6 @@ int menuEstacionamento(FilaCarros* filaCarros, int nroCarros){
 				if(temVaga(filaCarros, nroCarros)){
 					printf("Digite a placa do carro: ");
 					scanf("%[^\n]", placa);
-					printf("placa -> %s\n", placa);
 					insereEstacionamento(filaCarros, placa);
 				}else{
 					printf("Sem vaga no estacionamento.\n");
@@ -454,7 +457,7 @@ void menu(){
 				menuMesas(matrizMesas, filaEspera);
 				break;
 			case 2:
-				nroCarros = menuEstacionamento(filaCarros, nroCarros);
+				nroCarros = menuEstacionamento(&filaCarros, nroCarros);
 				break;
 			case 3:
 				printf("Sessao finalizada.\n");
