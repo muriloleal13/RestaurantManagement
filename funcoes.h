@@ -18,6 +18,7 @@ typedef struct fila{
 
 typedef struct carros{
 	char placa[10];
+	int ticket;
 	struct carros* ant;
 	struct carros* prox;
 } Carros;

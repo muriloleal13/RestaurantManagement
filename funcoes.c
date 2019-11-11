@@ -264,6 +264,8 @@ void insereEstacionamento(FilaCarros** filaCarros, char placa[]){
 		p->fim = carro;
 	}
 
+	imprimeEstacionamento(filaCarros);
+
 	free(carro);
 }
 
@@ -317,7 +319,7 @@ void imprimeEstacionamento(FilaCarros** filaCarros){
 	carro = p->ini;
 
 	while(carro != NULL){
-		printf("#%d\nPlaca %s\n---\n", cont++,carro->placa);
+		printf("#%d\nPlaca %s\n---\n", cont++, carro->placa);
 		carro = carro->prox;
 	}
 
