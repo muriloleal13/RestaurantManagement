@@ -64,6 +64,6 @@ void buscaCarro(FilaCarros* filaCarros, char placa[]);
 //Menu
 int opMenu();
 int opMenuTipo(char str[], char str2[], char str3[]);
-void menuMesas(Mesas** matrizMesasm, Fila* filaEspera, int* mesaRow, int* mesaCol, bool* mesaCad);
+void menuMesas(Mesas** matrizMesasm, Fila* filaEspera, int* mesaRow, int* mesaCol);
 FilaCarros* menuEstacionamento(FilaCarros* filaCarros, int* nroCarros);
 void menu();
