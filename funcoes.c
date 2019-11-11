@@ -401,7 +401,7 @@ int menuEstacionamento(FilaCarros* filaCarros, int nroCarros){
 				printf("Operacao invalida.\n");
 				break;
 		}
-		opEstacionamento = opMenuTipo("Mesas", "Clientes");
+		opEstacionamento = opMenuTipo("Estacionamento", "Carros");
 	}
 	return nroCarros;
 }
@@ -433,6 +433,5 @@ void menu(){
 		system("cls");
 		op = opMenu();
 	}
-
 
 }
