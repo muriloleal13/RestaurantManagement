@@ -33,7 +33,6 @@ typedef struct pilha_carros{
 } PilhaCarros;
 
 //FUNÇÕES AUXILIARES
-bool temLugar(Mesas** matrizMesas, int row, int col, int nroPessoas);
 bool temVaga(FilaCarros* filaCarros, int nroCarros);
 
 //FILA
@@ -52,6 +51,7 @@ PilhaCarros* popPilha(PilhaCarros* pilhaCarros);
 //MESAS
 void inicializaMesas(Mesas** matrizMesas, int row, int col);
 void imprimeMesas(Mesas** matrizMesas, int row, int cols);
+void buscaMesa(Mesas** matrizMesas, int row, int col, int nro);
 void entradaClientes(Mesas** matrizMesas, int row, int col, int nroPessoas, Fila* filaEspera);
 void saidaClientes(Mesas** matrizMesas, int row, int col, int nroMesa, Fila* filaEspera);
 
@@ -59,10 +59,11 @@ void saidaClientes(Mesas** matrizMesas, int row, int col, int nroMesa, Fila* fil
 FilaCarros* insereEstacionamento(FilaCarros* filaCarros, char placa[], int ticket);
 FilaCarros* removeEstacionamento(FilaCarros* filaCarros, char placa[]);
 void imprimeEstacionamento(FilaCarros* filaCarros);
+void buscaCarro(FilaCarros* filaCarros, char placa[]);
 
 //Menu
 int opMenu();
 int opMenuTipo(char str[], char str2[], char str3[]);
-void menuMesas(Mesas** matrizMesasm, Fila* filaEspera);
+void menuMesas(Mesas** matrizMesasm, Fila* filaEspera, int* mesaRow, int* mesaCol);
 FilaCarros* menuEstacionamento(FilaCarros* filaCarros, int* nroCarros);
 void menu();

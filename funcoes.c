@@ -5,30 +5,16 @@
 #include <string.h>
 #include "funcoes.h"
 
-#define MAX_MESA   4
-#define MAX_ESPERA 10
-#define MAX_CARROS 2
+#define MAX_MESA     4
+#define MESA_ROW_COL 1
+#define MAX_ESPERA   10
+#define MAX_CARROS   2
 
 //FUNÇÕES AUXILIARES
-bool temLugar(Mesas** matrizMesas, int row, int col, int nroPessoas){
-
-	int lugares = 0;
-
-	for(int i = 0; i < row; i++){
-		for(int j = 0; j < col; j++){
-			if(matrizMesas[i][j].livre){
-				lugares += matrizMesas[i][j].lugares;
-			}
-		}
-	}
-
-	return lugares > nroPessoas;
-}
-
 bool temVaga(FilaCarros* filaCarros, int nroCarros){
 
 	Carros *carro;
-	int cont = 0;
+	int vagas = 0;
 
 	if(filaCarros->ini == NULL){
 		return true;
@@ -37,13 +23,13 @@ bool temVaga(FilaCarros* filaCarros, int nroCarros){
 	carro = filaCarros->ini;
 	
 	while(carro != NULL){
-		cont++;
+		vagas++;
 		carro = carro->prox;
 	}
 
 	free(carro);
 
-	return cont < nroCarros;
+	return vagas < nroCarros;
 }
 
 //FILA
@@ -74,6 +60,8 @@ void insereFilaEspera(Fila* filaEspera, int nroPessoas){
 	}else{
 		filaEspera->ini = lista;
 	}
+
+	printf(" com a senha %d\n", lista->senha);
 
 	filaEspera->fim = lista;
 }
@@ -127,11 +115,17 @@ void imprimeFilaEspera(Fila* filaEspera){
 		printf("A Fila de Espera esta vazia.\n");
 		return;
 	}
+
 	lista = filaEspera->ini;
+
+	printf("=== FILA ESPERA ===\n");
+
 	while(lista != NULL){
 		printf("#%d\n%d pessoas\n---\n", cont++,lista->nroPessoas);
 		lista = lista->prox;
 	}
+
+	printf("=== FIM FILA ESPERA ===\n");
 
 	free(lista);
 }
@@ -150,12 +144,11 @@ PilhaCarros* pushPilha(PilhaCarros* pilhaCarros, Carros* novoCarro){
 
 	strcpy(carro->placa, novoCarro->placa);
 	carro->ticket = novoCarro->ticket;
-
 	carro->prox = pilhaCarros->prim;
+
 	pilhaCarros->prim = carro;
 
 	return pilhaCarros;
-
 }
 
 PilhaCarros* popPilha(PilhaCarros* pilhaCarros){
@@ -169,20 +162,6 @@ PilhaCarros* popPilha(PilhaCarros* pilhaCarros){
 	free(carro);
 
 	return pilhaCarros;
-}
-
-void imprimePilha(PilhaCarros* pilhaCarros){
-
-	Carros* carro;
-	int cont = 1;
-
-	carro = pilhaCarros->prim;
-
-	while(carro != NULL){
-		printf("#%d\n%s\n%d\n---\n", cont++, carro->placa, carro->ticket);
-		carro = carro->prox;
-	}
-
 }
 
 //Mesas
@@ -204,7 +183,9 @@ void imprimeMesas(Mesas** matrizMesas, int row, int col){
 
 	int cont = 1;
 
+
 	if(row != 0 && col != 0){
+		printf("=== MESAS ===\n");
 		for(int i = 0; i < row; i++){
 			for(int j = 0; j < col; j++){
 				char status[10];
@@ -213,12 +194,37 @@ void imprimeMesas(Mesas** matrizMesas, int row, int col){
 				else
 					strcpy(status, "Ocupado");
 
-				printf("#%d\nMesa %d\nStatus: %s\nSentados: %d\n---\n", cont, matrizMesas[i][j].nro, status, matrizMesas[i][j].sentados);
+				printf("Mesa #%d\nStatus: %s\nSentados: %d\n---\n", cont, matrizMesas[i][j].nro, status, matrizMesas[i][j].sentados);
 				cont++;
 			}
 		}
+		printf("=== FIM MESAS ===\n");
 	}else{
 		printf("Sem mesas cadastradas.\n");
+	}
+}
+
+void buscaMesa(Mesas** matrizMesas, int row, int col, int nro){
+
+	int cont = 1;
+
+	if(row != 0 && col != 0){
+		for(int i = 0; i < row; i++){
+			for(int j = 0; j < col; j++){
+				if(matrizMesas[i][j].nro == nro){
+					char status[10];
+					if(matrizMesas[i][j].livre)
+						strcpy(status, "Livre");	
+					else
+						strcpy(status, "Ocupado");
+					printf("#%d\nMesa %d\nStatus: %s\nSentados: %d\n---\n", cont, matrizMesas[i][j].nro, status, matrizMesas[i][j].sentados);
+					cont++;
+				}
+			}
+		}
+	}
+	if(cont == 1){
+		printf("Mesa %d nao encontrada.\n", nro);
 	}
 }
 
@@ -230,9 +236,11 @@ void entradaClientes(Mesas** matrizMesas, int row, int col, int nroPessoas, Fila
 				if(matrizMesas[i][j].livre && nroPessoas > 0){
 					matrizMesas[i][j].livre = false;
 					if(nroPessoas > MAX_MESA){
+						printf("%d pessoas sentaram na mesa %d\n", MAX_MESA, matrizMesas[i][j].nro);
 						matrizMesas[i][j].sentados = MAX_MESA;
 						nroPessoas -= MAX_MESA;
 					}else{
+						printf("%d pessoas sentaram na mesa %d\n", nroPessoas, matrizMesas[i][j].nro);
 						matrizMesas[i][j].sentados = nroPessoas;
 						nroPessoas = 0;
 					}
@@ -243,7 +251,7 @@ void entradaClientes(Mesas** matrizMesas, int row, int col, int nroPessoas, Fila
 		printf("Sem mesas cadastradas, portanto nao eh possivel cadastrar a entrada clientes.\n");
 	}
 	if(nroPessoas > 0){
-		printf("Nao existe mesas suficientes, inserindo pessoas restantes na fila de espera.\n");
+		printf("Nao existe mesas suficientes, inserindo pessoas restantes na fila de espera");
 		insereFilaEspera(filaEspera, nroPessoas);
 	}
 }
@@ -268,6 +276,7 @@ void saidaClientes(Mesas** matrizMesas, int row, int col, int nroMesa, Fila* fil
 	}
 }
 
+//ESTACIONAMENTO
 FilaCarros* insereEstacionamento(FilaCarros* filaCarros, char placa[], int ticket){
 
 	Carros* carro;
@@ -327,8 +336,6 @@ FilaCarros* removeEstacionamento(FilaCarros* filaCarros, char placa[]){
 			printf("Placa nao encontrada.\n");
 		}else{				
 
-			printf("placa %s-ant %d\n", carro->placa, carro->ant);
-
 			if(carro->ant != NULL){
 				carro->ant->prox = NULL;
 				filaCarros->fim = carro->ant;
@@ -365,12 +372,36 @@ void imprimeEstacionamento(FilaCarros* filaCarros){
 
 	carro = filaCarros->ini;
 
+	printf("=== ESTACIONAMENTO ===\n");
+
 	while(carro != NULL){
-		printf("#%d\nPlaca %s\nTicket %d\n---\n", cont++, carro->placa, carro->ticket);
+		printf("Carro #%d\nPlaca %s\nTicket %d\n---\n", cont++, carro->placa, carro->ticket);
 		carro = carro->prox;
 	}
 
-	free(carro);
+	printf("=== FIM ESTACIONAMENTO ===\n");
+}
+
+void buscaCarro(FilaCarros* filaCarros, char placa[]){
+
+	Carros *carro;
+	int cont = 1;
+
+	if(filaCarros->ini == NULL){
+		printf("Estacionamento vazio.\n");
+		return;
+	}
+
+	carro = filaCarros->ini;
+
+	while(carro != NULL){
+		if(strcmp(carro->placa, placa) == 0)
+			printf("Carro #%d\nPlaca %s\nTicket %d\n---\n", cont++, carro->placa, carro->ticket);
+		carro = carro->prox;
+	}
+
+	if(cont == 1)
+		printf("Carro nao encontrado.\n");
 }
 
 //MENU
@@ -391,19 +422,22 @@ int opMenuTipo(char str[], char str2[], char str3[]){
 	int opCliente;
 
 	printf("=== Menu %s === \n", str);
-	printf("1 - Cadastrar %s\n2 - Imprime %s\n3 - Entrada %s\n4 - Saida %s\n5 - Imprime %s\n6 - Voltar ao Menu\nOp: ", str, str, str2, str2, str3);
+	if(strcmp(str, "Mesas"))
+		printf("1 - Cadastrar %s\n2 - Imprime %s\n3 - Entrada %s\n4 - Saida %s\n5 - Imprime %s\n6 - Buscar %s\n7 - Voltar ao Menu\nOp: ", str, str, str2, str2, str3, str);
+	else
+		printf("1 - Cadastrar %s\n2 - Imprime %s\n3 - Entrada %s\n4 - Saida %s\n5 - Imprime %s\n6 - Buscar %s\n7 - Voltar ao Menu\nOp: ", str, str, str2, str2, str3, str2);
 	scanf("%d", &opCliente);
 	fflush(stdin);
 
 	return opCliente;
 }
 
-void menuMesas(Mesas** matrizMesas, Fila* filaEspera){
+void menuMesas(Mesas** matrizMesas, Fila* filaEspera, int* mesaRow, int* mesaCol){
 
 	int opMesas = opMenuTipo("Mesas", "Clientes", "Fila de Espera");
-	int row = 0, col = 0, nro;
+	int row = *mesaRow, col = *mesaCol, nro;
 
-	while(opMesas != 6){
+	while(opMesas != 7){
 		switch(opMesas){
 			case 1:
 				printf("=== CADASTRA MESAS ===\n");
@@ -437,6 +471,11 @@ void menuMesas(Mesas** matrizMesas, Fila* filaEspera){
 				imprimeFilaEspera(filaEspera);
 				break;
 			case 6:
+				printf("Digite o numero da mesa a pesquisar: ");
+				scanf("%d", &nro);
+				buscaMesa(matrizMesas, row, col, nro);
+				break;
+			case 7:
 				printf("Voltando ao menu.\n");
 				break;
 			default:
@@ -445,15 +484,17 @@ void menuMesas(Mesas** matrizMesas, Fila* filaEspera){
 		}
 		opMesas = opMenuTipo("Mesas", "Clientes", "Fila de Espera");
 	}
+	*mesaRow = row;
+	*mesaCol = col;
 }
 
 FilaCarros* menuEstacionamento(FilaCarros* filaCarros, int* nroCarros){
 
 	int opEstacionamento = opMenuTipo("Estacionamento", "Carros", "Estacionamento");
-	int row = 0, col = 0, maxCarros = *nroCarros;
+	int maxCarros = *nroCarros;
 	char placa[10];
 
-	while(opEstacionamento != 5){
+	while(opEstacionamento != 7){
 		switch(opEstacionamento){
 			case 1:
 				printf("Digite o numero de carros possiveis no estacionamento: ");
@@ -478,7 +519,13 @@ FilaCarros* menuEstacionamento(FilaCarros* filaCarros, int* nroCarros){
 				break;
 			case 5: 
 				imprimeEstacionamento(filaCarros);
-			case 6:
+				break;
+			case 6: 
+				printf("Digite a placa a pesquisar: ");
+				gets(placa);
+				buscaCarro(filaCarros, placa);
+				break;
+			case 7:
 				printf("Voltando ao menu.\n");
 				break;
 			default:
@@ -496,14 +543,14 @@ void menu(){
 	Mesas **matrizMesas = NULL;
 	Fila* filaEspera = criaFila();
 	FilaCarros* filaCarros = criaFilaCarros();
-	int nroCarros = MAX_CARROS;
+	int nroCarros = MAX_CARROS, mesaRow = MESA_ROW_COL, mesaCol = MESA_ROW_COL;
 
 	int op = opMenu();
 
 	while(op != 3){
 		switch(op){
 			case 1:
-				menuMesas(matrizMesas, filaEspera);
+				menuMesas(matrizMesas, filaEspera, &mesaRow, &mesaCol);
 				break;
 			case 2:
 				filaCarros = menuEstacionamento(filaCarros, &nroCarros);
