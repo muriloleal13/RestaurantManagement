@@ -18,7 +18,7 @@ typedef struct fila{
 
 typedef struct carros{
 	char placa[10];
-	// int ticket;
+	int ticket;
 	struct carros* ant;
 	struct carros* prox;
 } Carros;
@@ -28,13 +28,8 @@ typedef struct fila_carros{
 	Carros* fim;
 } FilaCarros;
 
-typedef struct lista_carros{
-	char placa[10];
-	struct lista_carros* prox;
-} ListaCarros;
-
 typedef struct pilha_carros{
-	ListaCarros* prim;
+	Carros* prim;
 } PilhaCarros;
 
 //FUNÇÕES AUXILIARES
@@ -51,8 +46,8 @@ void imprimeFilaEspera(Fila* filaEspera);
 
 //PILHA
 PilhaCarros* criaPilha();
-void pushPilha(PilhaCarros* PilhaCarros, char placa[]);
-void popPilha(PilhaCarros* pilhaCarros, char *placa);
+PilhaCarros* pushPilha(PilhaCarros* PilhaCarros, Carros* novoCarro);
+PilhaCarros* popPilha(PilhaCarros* pilhaCarros);
 
 //MESAS
 void inicializaMesas(Mesas** matrizMesas, int row, int col);
@@ -61,13 +56,13 @@ void entradaClientes(Mesas** matrizMesas, int row, int col, int nroPessoas, Fila
 void saidaClientes(Mesas** matrizMesas, int row, int col, int nroMesa, Fila* filaEspera);
 
 //ESTACIONAMENTO
-FilaCarros* insereEstacionamento(FilaCarros* filaCarros, char placa[]);
+FilaCarros* insereEstacionamento(FilaCarros* filaCarros, char placa[], int ticket);
 FilaCarros* removeEstacionamento(FilaCarros* filaCarros, char placa[]);
 void imprimeEstacionamento(FilaCarros* filaCarros);
 
 //Menu
 int opMenu();
-int opMenuTipo(char str[], char str2[]);
+int opMenuTipo(char str[], char str2[], char str3[]);
 void menuMesas(Mesas** matrizMesasm, Fila* filaEspera);
-int menuEstacionamento(FilaCarros* filaCarros, int nroCarros);
+FilaCarros* menuEstacionamento(FilaCarros* filaCarros, int* nroCarros);
 void menu();

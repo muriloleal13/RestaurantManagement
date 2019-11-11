@@ -7,6 +7,7 @@
 
 #define MAX_MESA   4
 #define MAX_ESPERA 10
+#define MAX_CARROS 2
 
 //FUNÇÕES AUXILIARES
 bool temLugar(Mesas** matrizMesas, int row, int col, int nroPessoas){
@@ -41,7 +42,7 @@ bool temVaga(FilaCarros* filaCarros, int nroCarros){
 	}
 
 	free(carro);
-	// printf("%d carros estacionados\n", cont);
+
 	return cont < nroCarros;
 }
 
@@ -143,25 +144,48 @@ PilhaCarros* criaPilha(){
 	return p;
 }
 
-void pushPilha(PilhaCarros* pilhaCarros, char placa[]){
+PilhaCarros* pushPilha(PilhaCarros* pilhaCarros, Carros* novoCarro){
 
-	ListaCarros* listaCarros = (ListaCarros*) malloc(sizeof(ListaCarros));
-	strcpy(listaCarros->placa, placa);
-	listaCarros->prox = pilhaCarros->prim;
-	pilhaCarros->prim = listaCarros;
+	Carros* carro = (Carros*) malloc(sizeof(Carros));
+
+	strcpy(carro->placa, novoCarro->placa);
+	carro->ticket = novoCarro->ticket;
+
+	carro->prox = pilhaCarros->prim;
+	pilhaCarros->prim = carro;
+
+	return pilhaCarros;
+
 }
 
-void popPilha(PilhaCarros* pilhaCarros, char *placa){
+PilhaCarros* popPilha(PilhaCarros* pilhaCarros){
 
-	ListaCarros* listaCarros;
+	Carros* carro;
 
-	listaCarros = pilhaCarros->prim;
-	strcpy(placa, listaCarros->placa);
-	pilhaCarros->prim = listaCarros->prox;
-	free(listaCarros);
+	carro = pilhaCarros->prim;
+
+	pilhaCarros->prim = carro->prox;
+
+	free(carro);
+
+	return pilhaCarros;
 }
 
-//MESAS
+void imprimePilha(PilhaCarros* pilhaCarros){
+
+	Carros* carro;
+	int cont = 1;
+
+	carro = pilhaCarros->prim;
+
+	while(carro != NULL){
+		printf("#%d\n%s\n%d\n---\n", cont++, carro->placa, carro->ticket);
+		carro = carro->prox;
+	}
+
+}
+
+//Mesas
 void inicializaMesas(Mesas** matrizMesas, int row, int col){
 
 	int cont = 1;
@@ -244,7 +268,7 @@ void saidaClientes(Mesas** matrizMesas, int row, int col, int nroMesa, Fila* fil
 	}
 }
 
-FilaCarros* insereEstacionamento(FilaCarros* filaCarros, char placa[]){
+FilaCarros* insereEstacionamento(FilaCarros* filaCarros, char placa[], int ticket){
 
 	Carros* carro;
 	carro = (Carros*) malloc(sizeof(Carros));
@@ -254,17 +278,21 @@ FilaCarros* insereEstacionamento(FilaCarros* filaCarros, char placa[]){
 	carro->ant = NULL;
 
 	if(filaCarros->ini == NULL){
+		if(ticket == 0)
+			carro->ticket = 1;
+		else 
+			carro->ticket = ticket;
 		filaCarros->ini = carro;
 		filaCarros->fim = carro;
 	}else{
+		if(ticket == 0)
+			carro->ticket = filaCarros->fim->ticket + 1;
+		else
+			carro->ticket = ticket;
 		filaCarros->fim->prox = carro;
 		carro->ant = filaCarros->fim;
 		filaCarros->fim = carro;
 	}
-
-	imprimeEstacionamento(filaCarros);
-
-	free(carro);
 
 	return filaCarros;
 }
@@ -272,6 +300,7 @@ FilaCarros* insereEstacionamento(FilaCarros* filaCarros, char placa[]){
 FilaCarros* removeEstacionamento(FilaCarros* filaCarros, char placa[]){
 
 	Carros *carro;
+	Carros *aux;
 	PilhaCarros *pilhaCarros = criaPilha();
 	char placaRet[10];
 
@@ -285,23 +314,41 @@ FilaCarros* removeEstacionamento(FilaCarros* filaCarros, char placa[]){
 	if(filaCarros->ini == filaCarros->fim){
 		filaCarros->ini = filaCarros->fim = NULL;
 	}else{
-		while(!(strcmp(carro->placa, placa) == 0)){ //remove os carros que não é o com a placa igual e insere na lista
-			pushPilha(pilhaCarros, carro->placa);
+		while(!(strcmp(carro->placa, placa) == 0)){
+			pilhaCarros = pushPilha(pilhaCarros, carro);
 			filaCarros->fim = carro->ant;
 			filaCarros->fim->prox = NULL;
+			aux = carro->ant;
+			free(carro);
+			carro = aux;
 		}
 
-		filaCarros->fim = carro->ant; //remove o carro que vai sair
-		filaCarros->fim->prox = NULL;
+		if(carro == NULL){
+			printf("Placa nao encontrada.\n");
+		}else{				
 
-		while(pilhaCarros->prim != NULL){ //remove o carro da pilha e insere novamente no estacionamento
-			popPilha(pilhaCarros, placaRet);
-			insereEstacionamento(filaCarros, placaRet);
+			printf("placa %s-ant %d\n", carro->placa, carro->ant);
+
+			if(carro->ant != NULL){
+				carro->ant->prox = NULL;
+				filaCarros->fim = carro->ant;
+			}else{
+				filaCarros->fim = NULL;
+				filaCarros->ini = NULL;
+			}
+
+			free(carro);
+		}
+
+		while(pilhaCarros->prim != NULL){
+			strcpy(carro->placa, pilhaCarros->prim->placa);
+			carro->ticket = pilhaCarros->prim->ticket; 
+			pilhaCarros = popPilha(pilhaCarros);
+			filaCarros = insereEstacionamento(filaCarros, carro->placa, carro->ticket);
 		}
 	}
 
 	free(pilhaCarros);
-	free(carro);
 
 	return filaCarros;
 }
@@ -319,7 +366,7 @@ void imprimeEstacionamento(FilaCarros* filaCarros){
 	carro = filaCarros->ini;
 
 	while(carro != NULL){
-		printf("#%d\nPlaca %s\n---\n", cont++, carro->placa);
+		printf("#%d\nPlaca %s\nTicket %d\n---\n", cont++, carro->placa, carro->ticket);
 		carro = carro->prox;
 	}
 
@@ -339,15 +386,12 @@ int opMenu(){
 	return op;
 }
 
-int opMenuTipo(char str[], char str2[]){
+int opMenuTipo(char str[], char str2[], char str3[]){
 
 	int opCliente;
 
 	printf("=== Menu %s === \n", str);
-	if(strcmp(str, "Mesas") == 0)
-		printf("1 - Cadastrar %s\n2 - Imprime %s\n3 - Entrada %s\n4 - Saida %s\n5 - Imprime Fila de Espera\n6 - Voltar ao Menu\nOp: ", str, str, str2, str2);
-	else
-		printf("1 - Cadastrar %s\n2 - Imprime %s\n3 - Entrada %s\n4 - Saida %s\n5 - Voltar ao Menu\nOp: ", str, str, str2, str2);
+	printf("1 - Cadastrar %s\n2 - Imprime %s\n3 - Entrada %s\n4 - Saida %s\n5 - Imprime %s\n6 - Voltar ao Menu\nOp: ", str, str, str2, str2, str3);
 	scanf("%d", &opCliente);
 	fflush(stdin);
 
@@ -356,7 +400,7 @@ int opMenuTipo(char str[], char str2[]){
 
 void menuMesas(Mesas** matrizMesas, Fila* filaEspera){
 
-	int opMesas = opMenuTipo("Mesas", "Clientes");
+	int opMesas = opMenuTipo("Mesas", "Clientes", "Fila de Espera");
 	int row = 0, col = 0, nro;
 
 	while(opMesas != 6){
@@ -399,49 +443,52 @@ void menuMesas(Mesas** matrizMesas, Fila* filaEspera){
 				printf("Operacao invalida.\n");
 				break;
 		}
-		opMesas = opMenuTipo("Mesas", "Clientes");
+		opMesas = opMenuTipo("Mesas", "Clientes", "Fila de Espera");
 	}
 }
 
-int menuEstacionamento(FilaCarros* filaCarros, int nroCarros){
+FilaCarros* menuEstacionamento(FilaCarros* filaCarros, int* nroCarros){
 
-	int opEstacionamento = opMenuTipo("Estacionamento", "Carros");
-	int row = 0, col = 0;
+	int opEstacionamento = opMenuTipo("Estacionamento", "Carros", "Estacionamento");
+	int row = 0, col = 0, maxCarros = *nroCarros;
 	char placa[10];
 
 	while(opEstacionamento != 5){
 		switch(opEstacionamento){
 			case 1:
 				printf("Digite o numero de carros possiveis no estacionamento: ");
-				scanf("%d", &nroCarros);
+				scanf("%d", &maxCarros);
 				break;
 			case 2:
 				imprimeEstacionamento(filaCarros);
 				break;
 			case 3:
-				if(temVaga(filaCarros, nroCarros)){
+				if(temVaga(filaCarros, maxCarros)){
 					printf("Digite a placa do carro: ");
-					scanf("%[^\n]", placa);
-					insereEstacionamento(filaCarros, placa);
+					gets(placa);
+					filaCarros = insereEstacionamento(filaCarros, placa, 0);
 				}else{
 					printf("Sem vaga no estacionamento.\n");
 				}
 				break;
 			case 4:
 				printf("Digite a placa do carro: ");
-				scanf("%[^\n]", placa);
-				removeEstacionamento(filaCarros, placa);
+				gets(placa);
+				filaCarros = removeEstacionamento(filaCarros, placa);
 				break;
-			case 5:
+			case 5: 
+				imprimeEstacionamento(filaCarros);
+			case 6:
 				printf("Voltando ao menu.\n");
 				break;
 			default:
 				printf("Operacao invalida.\n");
 				break;
 		}
-		opEstacionamento = opMenuTipo("Estacionamento", "Carros");
+		opEstacionamento = opMenuTipo("Estacionamento", "Carros", "Estacionamento");
 	}
-	return nroCarros;
+	*nroCarros = maxCarros;
+	return filaCarros;
 }
 
 void menu(){
@@ -449,7 +496,7 @@ void menu(){
 	Mesas **matrizMesas = NULL;
 	Fila* filaEspera = criaFila();
 	FilaCarros* filaCarros = criaFilaCarros();
-	int nroCarros = 0;
+	int nroCarros = MAX_CARROS;
 
 	int op = opMenu();
 
@@ -459,7 +506,7 @@ void menu(){
 				menuMesas(matrizMesas, filaEspera);
 				break;
 			case 2:
-				nroCarros = menuEstacionamento(filaCarros, nroCarros);
+				filaCarros = menuEstacionamento(filaCarros, &nroCarros);
 				break;
 			case 3:
 				printf("Sessao finalizada.\n");
@@ -471,5 +518,4 @@ void menu(){
 		system("cls");
 		op = opMenu();
 	}
-
 }
